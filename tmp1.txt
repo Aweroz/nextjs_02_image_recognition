@@ -1,0 +1,52 @@
+{
+  "food_products": [
+    {
+      "item": "Cabbage",
+      "quantity": 1
+    },
+    {
+      "item": "Cucumbers",
+      "quantity": 3
+    },
+    {
+      "item": "Red cabbage",
+      "quantity": 1
+    },
+    {
+      "item": "Raspberries",
+      "quantity": 1
+    },
+    {
+      "item": "Bottled water",
+      "quantity": 3
+    },
+    {
+      "item": "Cheese",
+      "quantity": 1
+    },
+    {
+      "item": "Milk",
+      "quantity": 1
+    },
+    {
+      "item": "Eggs",
+      "quantity": 12
+    },
+    {
+      "item": "Green onions",
+      "quantity": 1
+    },
+    {
+      "item": "Red bell pepper",
+      "quantity": 1
+    },
+    {
+      "item": "Yellow bell pepper",
+      "quantity": 1
+    },
+    {
+      "item": "Lettuce",
+      "quantity": 1
+    }
+  ]
+}
