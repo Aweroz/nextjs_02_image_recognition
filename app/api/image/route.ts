@@ -6,9 +6,14 @@ export const config = {
   },
 }
 
+import { schemaDishes, schemaIngredients, schemaReciepe } from "@/app/lib/schema";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
-export async function POST(request: Request) {
+import axios from "axios";
+import { NextRequest } from "next/server";
+
+export async function POST(request: NextRequest) {
+  const origin = request.nextUrl.origin;
 
   const formData = await request.json();
   const { prompt, quality, image } = formData;
@@ -18,6 +23,7 @@ export async function POST(request: Request) {
     temperature: 0
   });
 
+  // first recognize food in the image
   const messages = [
     {
       role: "user",
@@ -37,66 +43,54 @@ export async function POST(request: Request) {
     }
   ];
 
-  const response = await model.invoke(messages);
+  const ingredientsModel = model.withStructuredOutput(schemaIngredients);
+  const imageResponse = await ingredientsModel.invoke(messages);
+  // console.log(imageResponse);
 
-  const json_schema = {
-    title: "dishes",
-    description: "dish and recipe",
-    type: "object",
-    properties: {
-      dishes: {
-        type: "array",
-        description: "list of various dishes",
-        uniqueItems: true,
-        items: {
-          description: "dish and recipe",
-          type: "object",
-          properties: {
-            name: { type: "string", description: "name of the dish" },
-            tags: {
-              type: "array",
-              description: "Tags for the dish such as: vege, spicy, chinese, etc.",
-              items: { type: "string" },
-              minItems: 1,
-              uniqueItems: true
-            },
-            ingredients: {
-              type: "array",
-              description: "list of ingredients required for the dish",
-              items: {
-                type: "object",
-                properties: {
-                  name: { type: "string" },
-                  amount: { type: "number" },
-                  unit: { type: "string" }
-                },
-                required: ["name", "amount", "unit"]
-              }
-            },
-            cooking_time: { type: "integer", description: "How long takes preparation of the dish" },
-            recipe: { type: "string", description: "steps to do to preapre dish" }
-          },
-          required: ["name", "tags", "ingredients", "cooking_time", "recipe"]
-        }
-      }
-    },
-    required: ["dishes"]
-  }
-  const structuredLlm = model.withStructuredOutput(json_schema)
-
-  //
-  const systemTemplate = "Find and propose 10 recipies for a dinner dish based on the list of available ingredients: {ingredients}";
+  // propose 10 dishes - only names and ingredients
+  const dishesModel = model.withStructuredOutput(schemaDishes);
+  const systemTemplate = 
+    "Find and propose 10 recipies for a dinner dish based on the list of available ingredients: {ingredients}." +
+    "Return only names of that dishes and required ingredients.";
   const dishesPrompt = ChatPromptTemplate.fromMessages([
     ["system", systemTemplate]
   ]);
-  const chain = dishesPrompt.pipe(structuredLlm);
-  const promptValue = await chain.invoke({
-    ingredients: response.content,
+  const chain = dishesPrompt.pipe(dishesModel);
+  const dishesResponse = await chain.invoke({
+    ingredients: imageResponse.ingredients,
   });
+  // console.log(dishesResponse);
 
-  console.log(promptValue);
+  // prepare final list of the dishes
+  const dishes = [];
+  for (const dish of dishesResponse.dishes) {
+    const response = await axios.get(`${origin}/api/recipe?name=${encodeURI(dish.name)}`);
+    if (!response.data) {
+      // no recipe found in data base -> get recipe from AI
+      const recipeModel = model.withStructuredOutput(schemaReciepe);
+      const systemTemplate2 = "Find a recipie for dish with name {dish_name} and the list of ingredients {ingredients}";
+      const recipePrompt = ChatPromptTemplate.fromMessages([
+        ["system", systemTemplate2]
+      ]);
+      const chain = recipePrompt.pipe(recipeModel);
+      const recipeResponse = await chain.invoke({
+        dish_name: dish.name,
+        ingredients: dish.ingredients,
+      });
+      // console.log(recipeResponse);
 
+      // add dish to the database
+      await axios.post(`${origin}/api/recipe`, recipeResponse);
 
+      dishes.push(recipeResponse);
+      // console.log(`dish from AI: ${recipeResponse.name}`);
+    } else {
+      // recipe exists in the DB -> get it from DB
+      dishes.push(response.data);
+      // console.log(`dish from DB: ${response.data.name}`);
+    }
+  }
 
-  return Response.json({ingredients: response.content, recipies: promptValue});
+  // return dishes
+  return Response.json({dishes});
 }
