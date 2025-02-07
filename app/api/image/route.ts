@@ -6,17 +6,18 @@ export const config = {
   },
 }
 
+import { findDish, insertDish } from "@/app/lib/data";
 import { schemaDishes, schemaIngredients, schemaReciepe } from "@/app/lib/schema";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
-import axios from "axios";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
-  const origin = request.nextUrl.origin;
 
   const formData = await request.json();
-  const { prompt, quality, image } = formData;
+  const { image } = formData;
+  const prompt = 'List food products and their amount in the picture.';
+  const quality = 'low';
   
   const model = new ChatOpenAI({
     model: "gpt-4o-mini",
@@ -24,28 +25,16 @@ export async function POST(request: NextRequest) {
   });
 
   // first recognize food in the image
-  const messages = [
-    {
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text: prompt,
-        },
-        {
-          type: "image_url",
-          image_url: {
-            "url": image,
-            "detail": quality
-            },
-        },
-      ],
-    }
-  ];
+  const messages = [{
+    role: "user",
+    content: [
+      { type: "text", text: prompt, },
+      { type: "image_url", image_url: { "url": image, "detail": quality } },
+    ],
+  }];
 
   const ingredientsModel = model.withStructuredOutput(schemaIngredients);
   const imageResponse = await ingredientsModel.invoke(messages);
-  // console.log(imageResponse);
 
   // propose 10 dishes - only names and ingredients
   const dishesModel = model.withStructuredOutput(schemaDishes);
@@ -59,13 +48,12 @@ export async function POST(request: NextRequest) {
   const dishesResponse = await chain.invoke({
     ingredients: imageResponse.ingredients,
   });
-  // console.log(dishesResponse);
 
   // prepare final list of the dishes
   const dishes = [];
   for (const dish of dishesResponse.dishes) {
-    const response = await axios.get(`${origin}/api/recipe?name=${encodeURI(dish.name)}`);
-    if (!response.data) {
+    const response = await findDish(dish.name);
+    if (!response) {
       // no recipe found in data base -> get recipe from AI
       const recipeModel = model.withStructuredOutput(schemaReciepe);
       const systemTemplate2 = "Find a recipie for dish with name {dish_name} and the list of ingredients {ingredients}";
@@ -77,17 +65,16 @@ export async function POST(request: NextRequest) {
         dish_name: dish.name,
         ingredients: dish.ingredients,
       });
-      // console.log(recipeResponse);
 
       // add dish to the database
-      await axios.post(`${origin}/api/recipe`, recipeResponse);
+      await insertDish(recipeResponse as JSON);
 
       dishes.push(recipeResponse);
       // console.log(`dish from AI: ${recipeResponse.name}`);
     } else {
       // recipe exists in the DB -> get it from DB
-      dishes.push(response.data);
-      // console.log(`dish from DB: ${response.data.name}`);
+      dishes.push(response);
+      // console.log(`dish from DB: ${response.name}`);
     }
   }
 

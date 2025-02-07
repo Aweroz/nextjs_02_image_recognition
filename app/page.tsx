@@ -1,15 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import axios from "axios";
 import React, { FormEvent, useState } from "react";
 import { resizeImageForOpenAI } from "./lib/utlis";
+import RecipesList from "./ui/recipes_list";
+import { Response } from "./lib/definitions";
 
 export default function Home() {
-  type Response = {
-    ingredients: string,
-    recipies: string
-  }
-  const [response, setResponse] = useState<Response>({ingredients: "", recipies: ""});
+  const [response, setResponse] = useState<Response>({dishes: []});
   const [image, setImage] = useState<string>('fridge_template.jpg');
   const [imageResized, setImageResized] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -45,32 +44,11 @@ export default function Home() {
     }
   }
 
-  const handleChangePrompt = (e:React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      prompt: e.target.value
-    });
-  }
-
-  const handleChangeQuality = (e:React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      quality: e.target.value
-    });
-  }
-
-  const handleChangeResize = (e:React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      resize: e.target.value === 'true'
-    });
-  }
-
   async function handleSubmitForm(e:FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     // reset previous response
-    setResponse({ingredients: "", recipies: ""});
+    setResponse({ dishes: [] });
     setIsLoading(true);
 
     const fd = new FormData();
@@ -81,7 +59,7 @@ export default function Home() {
     const stringData = JSON.stringify(axios.formToJSON(fd));
 
     try {
-      const res = await axios.post('/api/image', stringData, {
+      const res = await axios.post('/api/image/fake', stringData, {
         maxContentLength: 100000000,
         maxBodyLength: 1000000000,
         headers: {
@@ -104,39 +82,6 @@ export default function Home() {
           <label htmlFor='file' className="button">Select image</label>
           <input type='file' id='file' style={{display: 'none'}} onChange={handleSelectFile} disabled={isLoading}/>
 
-          <br/>
-          <h4><p>Enter prompt</p></h4>
-          <textarea className='textarea_prompt' id='prompt' name='prompt' rows={5} cols={50} placeholder='Enter prompt for ai'
-            value={formData.prompt}
-            onChange={handleChangePrompt}
-          />
-
-          <div className="options">
-            <div>
-              <h4><p>Select quality</p></h4>
-              <input type="radio" id="low" name="quality" value="low" onChange={handleChangeQuality}
-                checked={formData.quality==='low'}
-              />
-              <label htmlFor="low">low</label><br/>
-              <input type="radio" id="high" name="quality" value="high" onChange={handleChangeQuality}
-                checked={formData.quality==='high'}
-              />
-              <label htmlFor="high">high</label><br/>
-            </div>
-
-            <div>
-              <h4><p>Resize image</p></h4>
-              <input type="radio" id="resize_yes" name="resize" value="true" onChange={handleChangeResize}
-                checked={formData.resize}
-              />
-              <label htmlFor="resize_yes">yes</label><br/>
-              <input type="radio" id="resize_no" name="resize" value="false" onChange={handleChangeResize}
-                checked={!formData.resize}
-              />
-              <label htmlFor="resize_no">no</label><br/>
-            </div>
-          </div>
-
           <button type="submit" value="Submit" className="button" disabled={isLoading}>
             Submit
           </button>
@@ -144,24 +89,14 @@ export default function Home() {
       </section>
 
       <section className="right">
-        <h3>Response</h3>
-        <br/>
         {isLoading ?
           <div>
             <p>Retrieving data from AI...</p>
           </div>
           :
-          <>
-            <div style={{width: '100%'}}>
-              <h4>List of ingredients</h4>
-              <pre className="recipies">{response.ingredients}</pre>
-            </div>
-            <br/>
-            <div style={{width: '100%'}}>
-              <h4>Recipies</h4>
-              <pre className="recipies">{response.recipies}</pre>
-            </div>
-          </>
+          <div>
+            <RecipesList dishes={ response.dishes } />
+          </div>
         }
       </section>
     </main>
