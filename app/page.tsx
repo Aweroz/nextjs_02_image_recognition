@@ -94,7 +94,7 @@ export default function Home() {
             <p>Retrieving data from AI...</p>
           </div>
           :
-          <div>
+          <div style={{width: '100%'}}>
             <RecipesList dishes={ response.dishes } />
           </div>
         }

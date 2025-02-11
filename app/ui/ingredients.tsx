@@ -2,11 +2,13 @@ export default function Ingredients({ list }: { list: { name: string, amount: nu
   return (
     <>
     <h4>Ingredients:</h4>
+    <ul>
       {list.map((row) => (
-        <div key={row.name}>
-          <span>{ row.name }: </span><span>{row.amount} </span><span>{row.unit}</span>
-        </div>
+        <li key={row.name}>
+          <span>{ row.name }: </span><span><h4 style={{display: 'inline'}}>{row.amount} </h4></span><span>{row.unit}</span>
+        </li>
       ))}
+    </ul>
     </>
   )
 }

@@ -1,3 +1,57 @@
+.recipes {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.recipes h2 {
+  padding: 0.5rem 0;
+}
+
+.recipes_list {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.recipe_short {
+  width: 100%;
+  display: flex;
+  flex-grow: 1;
+  padding: 0.5rem 0.5rem;
+  margin: 0.3rem 0;
+  border-radius: 10px;
+  border: 1px solid rgb(196, 196, 196);
+}
+.recipe_short .left {
+  flex-grow: 1;
+}
+
+.red {
+  background-color: red;
+  color: white;
+}
+
+.rounded {
+  border: 0;
+  border-radius: 7px;
+  padding: 0.25rem 0.75rem;
+  height: 100%;
+  width: 65px;
+}
+
+.tags {
+  font-size: smaller;
+  color: deepskyblue;
+}
+
+ol, ul {
+  padding-left: 20px;
+}
+
+.cooking_time {
+  font-weight: bolder;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -29,7 +83,7 @@ body {
 }
 
 .Home {
-  margin: 1rem;
+  margin: 0;
   width: 100%;
   flex: 1;
   display: flex;
@@ -39,6 +93,7 @@ body {
 @media (min-width: 1000px) {
   .Home {
     flex-direction: row;
+    margin: 1rem;
   }
 }
 .Home section {
@@ -48,7 +103,12 @@ body {
   flex: 1;
   justify-content: flex-start;
   align-items: center;
-  padding: 0 1rem;
+  padding: 0 0.3rem;
+}
+@media (min-width: 1000px) {
+  .Home section {
+    padding: 0 1rem;
+  }
 }
 .Home section.left {
   flex: 1;
@@ -61,7 +121,7 @@ body {
   flex: 2;
 }
 .Home img {
-  min-width: 400px;
+  min-width: 300px;
   max-width: 600px;
   width: 100%;
   height: auto;
@@ -108,7 +168,7 @@ body {
   background-color: rgb(81, 127, 211);
 }
 
-.recipies {
+.recipe_steps {
   white-space: pre-wrap;
 }
 
