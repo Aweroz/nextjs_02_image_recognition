@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dish } from "../lib/definitions";
 import Ingredients from "./ingredients";
 import RecipeSteps from "./recipe_steps";
+import styles from "./recipe.module.scss";
 
 export default function Recipe({ dish }: { dish: Dish }) {
   const [open, setOpen] = useState<boolean>(false);
@@ -18,7 +19,7 @@ export default function Recipe({ dish }: { dish: Dish }) {
     <>
       {open ? (
       <div className="recipe_short">
-        <div className="left">
+        <div className={styles.left}>
         <div className="dish_name">{dish.name} / <span className="cooking_time">{dish.cooking_time} min</span></div>
           <div className="tags">{dish.tags.join(', ')}</div>
           <br/>
@@ -37,7 +38,7 @@ export default function Recipe({ dish }: { dish: Dish }) {
       ) :
       (
         <div className="recipe_short">
-          <div className="left">
+          <div className={styles.left}>
             <div className="dish_name">{dish.name} / <span className="cooking_time">{dish.cooking_time} min</span></div>
             <div className="tags">{dish.tags.join(', ')}</div>
           </div>

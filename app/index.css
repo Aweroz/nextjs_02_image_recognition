@@ -22,9 +22,6 @@
   border-radius: 10px;
   border: 1px solid rgb(196, 196, 196);
 }
-.recipe_short .left {
-  flex-grow: 1;
-}
 
 .red {
   background-color: red;
@@ -119,6 +116,7 @@ body {
 }
 .Home section.right {
   flex: 2;
+  /* margin-left: calc(100vw - 100%); */
 }
 .Home img {
   min-width: 300px;
