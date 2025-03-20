@@ -1,20 +1,20 @@
 'use client';
 
 import axios from "axios";
-import React, { FormEvent, useState } from "react";
+import React, { useState } from "react";
 import RecipesList from "./ui/recipes_list";
 import { Response } from "./lib/definitions";
 import { useImage } from "./hooks/useImage";
-import Image from "next/image";
+import ImageSelector from "./components/ImageSelector";
 
 export default function Home() {
+  console.log("render >> home");
   const [response, setResponse] = useState<Response>({dishes: []});
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const { image, imageResized, handleSelectFile } = useImage('/fridge_template.jpg');
 
-  async function handleSubmitForm(e:FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmitImage() {
 
     // reset previous response
     setResponse({ dishes: [] });
@@ -45,15 +45,10 @@ export default function Home() {
   return (
     <main className='Home'>
       <section className="left">
-        <Image src={image} alt='picture of food' width='400' height='225'/>
-        <form onSubmit={handleSubmitForm}>
-          <label htmlFor='file' className="button">Select image</label>
-          <input type='file' id='file' style={{display: 'none'}} onChange={handleSelectFile} disabled={isLoading}/>
-
-          <button type="submit" value="Submit" className="button" disabled={isLoading}>
-            Submit
-          </button>
-        </form>
+        <ImageSelector image={image} handleSelectFile={handleSelectFile} isLoading={isLoading}/>
+        <button type="button" value="Submit" className="button" disabled={isLoading} onClick={handleSubmitImage}>
+          Submit
+        </button>
       </section>
 
       <section className="right">

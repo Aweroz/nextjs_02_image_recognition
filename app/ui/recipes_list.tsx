@@ -2,6 +2,7 @@ import { Dish } from "../lib/definitions";
 import Recipe from "./recipe";
 
 export default function RecipesList({ dishes }: { dishes: Dish[] }) {
+  console.log("render >> recipes list");
   const content = (
     <>
     {dishes?.map((dish) => (
